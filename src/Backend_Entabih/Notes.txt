@@ -1,0 +1,8 @@
+✅ How Users Interact
+POST /users/signup → Create a user
+
+POST /users/login → Login and receive a JWT token
+
+POST /reports/ → Submit a report (with user_id)
+
+POST /feedbacks/ → Submit a feedback
