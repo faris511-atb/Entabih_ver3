@@ -3,7 +3,7 @@
 
 const ENV = {
   dev: {
-    FASTAPI_URL: 'http://192.168.1.26:8000', // Change to your dev machine IP
+    FASTAPI_URL: 'http://192:8000', // Change to your dev machine IP
   },
   prod: {
     FASTAPI_URL: 'https://your-production-api.com',
