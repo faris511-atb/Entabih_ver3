@@ -1,0 +1,33 @@
+#run the server:
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+
+#run the app:
+npx react-native run-android
+
+#make new app :
+npx @react-native-community/cli init 
+
+
+#If there is a conflict with libraries or an old, unused library, place the order there :
+rmdir /s /q node_modules
+del package-lock.json
+npm install
+
+
+#make sure you add the phone:
+adb devices
+
+
+#cleen app after changing any code :
+cd android
+./gradlew clean
+cd ..
+
+#resets cache and motor: 
+npx react-native start --reset-cache
+
+
+# install and remove any library:
+npm install name
+npm remove name 
