@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-clipboard/clipboard": "^1.16.3",
+    "@react-native-documents/picker": "^12.0.1", //do new install npm in your pc
     "@react-native/new-app-screen": "0.85.2",
     "@react-navigation/bottom-tabs": "^7.15.9",
     "@react-navigation/native": "^7.2.2",
