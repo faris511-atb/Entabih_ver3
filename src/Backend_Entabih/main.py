@@ -120,23 +120,48 @@ async def scan_pdf(
         raise HTTPException(status_code=422, detail="Could not extract text from this PDF.")
 
     combined_prompt = (
-    f"You are an expert document analyst.\n\n"
-    f"The user has uploaded a document and asks:\n"
-    f"\"{user_prompt}\"\n\n"
+    f"You are a professional forensic document analyst.\n\n"
+    f"The user asks: \"{user_prompt}\"\n\n"
     f"Document content:\n\"{pdf_text}\"\n\n"
-    f"Based on the user's specific question, analyze the document carefully.\n\n"
-    f"If the question is about AI-generated content: look for repetitive phrasing, "
-    f"lack of personal voice, overly formal structure, no spelling mistakes, "
-    f"and generic language patterns typical of AI.\n\n"
-    f"If the question is about fraud or forgery: look for inconsistencies, "
-    f"suspicious requests, pressure language, fake authority claims.\n\n"
-    f"If the question is about professionalism: evaluate language quality, "
-    f"structure, and clarity.\n\n"
-    f"Score the document from 0 to 100 where:\n"
-    f"- 100 = the document FULLY matches what the user is worried about "
-    f"(e.g. fully AI-generated, fully fraudulent, fully unprofessional)\n"
-    f"- 0 = the document is completely clean from the user's concern\n\n"
-    f"IMPORTANT: Return ONLY a single integer between 0 and 100. No words. Just the number."
+    f"Analyze the document based on the user's question and give a SAFETY score.\n\n"
+    f"Score from 0 to 100 where:\n"
+    f"- 85 to 100 = Legitimate, trustworthy, no issues found\n"
+    f"- 50 to 84  = Some concerns, needs review\n"
+    f"- 0 to 49   = Suspicious or fraudulent, clear problems found\n\n"
+    
+    f"ANALYSIS RULES:\n\n"
+    
+    f"If question is about EMPLOYMENT CONTRACT authenticity:\n"
+    f"High score (85-100) if: has clear job title, defined salary, company details, "
+    f"legal clauses, proper signatures section, professional language.\n"
+    f"Low score (0-49) if: vague terms, no company info, pressure to sign, "
+    f"missing legal protections, suspicious payment requests.\n\n"
+    
+    f"If question is about FRAUD or SCAM:\n"
+    f"High score (85-100) if: no urgent language, no suspicious links, "
+    f"no requests for personal data, clear sender identity.\n"
+    f"Low score (0-49) if: urgency threats, fake authority, money requests, "
+    f"suspicious links, impersonation.\n\n"
+    
+    f"If question is about AI-GENERATED CONTENT:\n"
+    f"High score (85-100) if: personal voice, unique ideas, natural flow, "
+    f"human-like imperfections, specific personal details.\n"
+    f"Low score (0-49) if: generic phrasing, repetitive structure, "
+    f"overly perfect grammar, no personal voice, AI patterns.\n\n"
+    
+    f"If question is about LEGAL DOCUMENT authenticity:\n"
+    f"High score (85-100) if: proper legal formatting, consistent dates, "
+    f"official language, clear parties, proper structure.\n"
+    f"Low score (0-49) if: inconsistent dates, missing stamps, "
+    f"vague parties, contradictory clauses.\n\n"
+    
+    f"If question is about WRITING STYLE or HONESTY:\n"
+    f"High score (85-100) if: consistent narrative, clear evidence, "
+    f"no contradictions, honest tone.\n"
+    f"Low score (0-49) if: contradictions, emotional manipulation, "
+    f"exaggerated claims, defensive dishonest language.\n\n"
+    
+    f"IMPORTANT: Return ONLY a single integer between 0 and 100. Nothing else."
 )
 
     OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -178,19 +203,22 @@ async def scan_pdf(
 
         # Get message
         message_prompt = (
-    f"You are an expert document analyst.\n\n"
-    f"User's question: \"{user_prompt}\"\n"
+    f"You are a professional forensic document analyst.\n\n"
+    f"User question: \"{user_prompt}\"\n"
     f"Document excerpt: \"{pdf_text[:2000]}\"\n"
-    f"Analysis score: {score:.0f}/100 "
-    f"(100 = fully matches the concern, 0 = completely clean)\n\n"
-    f"Write a clear, honest, direct Arabic analysis (2-3 sentences) that:\n"
-    f"1. Directly answers the user's question with a clear YES or NO first.\n"
-    f"2. Explains the main evidence you found in the document.\n"
-    f"3. Gives a practical recommendation.\n\n"
-    f"Be honest and specific. Do not be vague. "
-    f"If the document shows AI writing, say so clearly. "
-    f"If it is fraud, say so clearly.\n"
-    f"Write in formal Arabic only."
+    f"Score given: {score:.0f}/100 (higher = more problematic)\n\n"
+    
+    f"Write a professional Arabic analysis that:\n"
+    f"1. Starts with a clear direct verdict (e.g. 'نعم، المستند يحتوي على...' or 'لا، المستند يبدو...')\n"
+    f"2. Lists the TOP 2 specific pieces of evidence you found in the text\n"
+    f"3. Ends with one clear practical recommendation\n\n"
+    
+    f"Rules:\n"
+    f"- Maximum 4 sentences\n"
+    f"- Be specific, mention actual words or phrases from the document if relevant\n"
+    f"- Write in formal Arabic only\n"
+    f"- Never be vague or say 'it could be either way'\n"
+    f"- Be confident and direct"
 )
 
         try:
