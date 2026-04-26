@@ -111,6 +111,8 @@ const FraudCheckerScreen = () => {
   };
 
   const handleCheck = async () => {
+     setPdfResult(null);
+  setPdfError(null);
     if (!user) {
       Alert.alert('تسجيل الدخول مطلوب', 'يجب تسجيل الدخول لاستخدام الكاشف.', [
         { text: 'إلغاء', style: 'cancel' },
@@ -229,6 +231,11 @@ const FraudCheckerScreen = () => {
 
   // ── PDF: analyze ──────────────────────────────────────────────────────────
   const handlePdfAnalyze = async () => {
+     setResult('');
+  setAdvice('');
+  setExpanded(false);
+  setErrorMessage(null);
+
     if (!user) {
       Alert.alert('تسجيل الدخول مطلوب', 'يجب تسجيل الدخول لاستخدام الكاشف.', [
         { text: 'إلغاء', style: 'cancel' },
@@ -293,15 +300,15 @@ if (!contentType.includes('application/json')) {
   };
 
   const getPdfScoreColor = (s) => {
-  if (s >= 75) return '#D32F2F';  // red = problem found
-  if (s >= 40) return '#FF8C00';  // orange = suspicious
-  return '#2E7D32';               // green = clean
+  if (s >= 75) return '#2E7D32';   // green  = legitimate
+  if (s >= 45) return '#FF8C00';   // orange = suspicious
+  return '#D32F2F';                 // red    = fraudulent/problematic
 };
 
-  const getPdfScoreLabel = (s) => {
-  if (s >= 75) return 'نسبة عالية من المخاوف المُكتشفة';
-  if (s >= 40) return 'يستحق المراجعة الدقيقة';
-  return 'لم يتم رصد مشكلة واضحة';
+ const getPdfScoreLabel = (s) => {
+  if (s >= 75) return 'المستند يبدو موثوقاً وسليماً';
+  if (s >= 45) return 'يستحق المراجعة الدقيقة';
+  return 'مستند مشبوه أو غير موثوق';
 };
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -347,6 +354,11 @@ if (!contentType.includes('application/json')) {
               placeholder="اكتب هنا الرسالة للتحقق منها..."
               placeholderTextColor={theme.subtext}
               maxLength={1000}
+
+              onFocus={() => {
+               setPdfResult(null);
+              setPdfError(null);
+              }}
             />
             <TouchableOpacity style={styles.pasteButton} onPress={handlePaste}>
               <Text style={styles.pasteButtonText}>لصق</Text>
