@@ -254,6 +254,11 @@ async def scan_pdf(
         "message": message
     }
 
+@app.put("/update-user/{user_id}")
+async def update_user(user_id: int, data: dict):
+    # update name, phone, and optionally password in your DB
+    ...
+
 # # Test route
 # @app.get("/test")
 # def test_message():
