@@ -105,6 +105,12 @@ const ProfileScreen = () => {
       showArrow: true,
     },
     {
+       title: 'الأسئلة الشائعة',
+       icon: <Ionicons name="help-circle" size={22} color="#FFF" />,
+       onPress: () => navigation.navigate('faq'),
+       showArrow: true,
+     },
+    {
       title: 'تسجيل خروج',
       icon: <MaterialIcons name="logout" size={22} color="#FFF" />,
       onPress: () => setShowLogoutConfirm(true),
