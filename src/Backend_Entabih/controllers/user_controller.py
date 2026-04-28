@@ -34,5 +34,6 @@ def login_user(user: UserLogin, db: Session):
         "access_token": access_token,
         "token_type": "bearer",
         "username": db_user.name,
-        "user_id": db_user.user_id  # ✅ هذا السطر يحل المشكلة
+        "user_id": db_user.user_id , # ✅ هذا السطر يحل المشكلة
+        "email": db_user.email 
     }
