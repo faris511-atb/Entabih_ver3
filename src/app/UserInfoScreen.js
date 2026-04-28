@@ -1,4 +1,6 @@
 
+//new update
+
 /**
  * src/app/UserInfoScreen.js
  *
@@ -27,11 +29,14 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../constants/ThemeContext';
+import { useAuth } from '../app/AuthContext';
 const ENV = require('../config').default;
 
 export default function UserInfoScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
+  const { user, updateUser } = useAuth();
+
 
   const [name, setName]               = useState('');
   const [email, setEmail]             = useState('');
@@ -42,24 +47,26 @@ export default function UserInfoScreen() {
   const [saving, setSaving]           = useState(false);
 
   // ── Load user data from storage on mount ─────────────────────────────────
-  useEffect(() => {
-    const loadUserData = async () => {
-      setLoading(true);
-      try {
-        const storedName  = await AsyncStorage.getItem('username');
-        const storedEmail = await AsyncStorage.getItem('user_email');
-        const storedPhone = await AsyncStorage.getItem('user_phone');
-        if (storedName)  setName(storedName);
-        if (storedEmail) setEmail(storedEmail);
-        if (storedPhone) setPhone(storedPhone);
-      } catch (e) {
-        console.error('Failed to load user data:', e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadUserData();
-  }, []);
+ useEffect(() => {
+  const loadUserData = async () => {
+    setLoading(true);
+    try {
+      const storedName  = await AsyncStorage.getItem('username');
+      const storedEmail = await AsyncStorage.getItem('user_email');
+      const storedPhone = await AsyncStorage.getItem('user_phone');
+      // Also use auth user if available
+      if (user?.username) setName(user.username);
+      else if (storedName) setName(storedName);
+      if (storedEmail) setEmail(storedEmail);
+      if (storedPhone) setPhone(storedPhone);
+    } catch (e) {
+      console.error('Failed to load user data:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+  loadUserData();
+}, []);
 
   // ── Save changes ──────────────────────────────────────────────────────────
   const handleSave = async () => {
@@ -104,19 +111,19 @@ export default function UserInfoScreen() {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        Alert.alert('خطأ', data.detail || 'فشل حفظ التغييرات.');
-        return;
-      }
+      if (response.ok) {
+  // Update AsyncStorage
+  await AsyncStorage.setItem('username', name.trim());
+  if (phone.trim()) await AsyncStorage.setItem('user_phone', phone.trim());
 
-      // Update local storage
-      await AsyncStorage.setItem('username', name.trim());
-      if (phone.trim()) await AsyncStorage.setItem('user_phone', phone.trim());
+  // Update AuthContext state so name updates immediately everywhere
+  await updateUser(name.trim());
 
-      setCurrentPassword('');
-      setNewPassword('');
+  setCurrentPassword('');
+  setNewPassword('');
+  Alert.alert('تم', 'تم حفظ التغييرات بنجاح.');
+}
 
-      Alert.alert('تم', 'تم حفظ التغييرات بنجاح.');
     } catch (e) {
       console.error('Save error:', e);
       Alert.alert('خطأ', 'تعذر الاتصال بالخادم.');
