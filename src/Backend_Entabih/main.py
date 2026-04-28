@@ -20,6 +20,18 @@ from moderator import moderate_report_logic  # ✅ استخدم الملف ال�
 from fastapi import File, UploadFile, Form
 from pdf_utils import extract_text
 
+from pydantic import BaseModel
+from typing import Optional
+
+from models.users import User
+from passlib.context import CryptContext
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+class UpdateUserRequest(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    current_password: Optional[str] = None
+    new_password: Optional[str] = None
 
 Base.metadata.create_all(bind=engine)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
@@ -254,10 +266,36 @@ async def scan_pdf(
         "message": message
     }
 
+
+# Problem  — Password change not sent to backend
 @app.put("/update-user/{user_id}")
-async def update_user(user_id: int, data: dict):
-    # update name, phone, and optionally password in your DB
-    ...
+async def update_user(user_id: int, data: UpdateUserRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="المستخدم غير موجود")
+    
+    # Update name
+    user.name = data.name
+    
+    # Update phone if provided
+    if data.phone:
+        user.phone = data.phone
+    
+    # Update password if provided
+    if data.new_password and data.current_password:
+        # Verify current password
+        if not pwd_context.verify(data.current_password, user.hashed_password):
+            raise HTTPException(status_code=400, detail="كلمة المرور الحالية غير صحيحة")
+        # Hash and save new password
+        user.hashed_password = pwd_context.hash(data.new_password)
+    
+    db.commit()
+    db.refresh(user)
+    
+    return {"message": "تم تحديث البيانات بنجاح", "name": user.name}
+
+
 
 # # Test route
 # @app.get("/test")
