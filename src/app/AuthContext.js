@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem('token', data.access_token);
       await AsyncStorage.setItem('username', data.username);
       await AsyncStorage.setItem('user_id', String(data.user_id));
+      await AsyncStorage.setItem('user_email', data.email || '');
       setUser({ username: data.username });
       setSession(true);
       return true;
@@ -88,8 +89,13 @@ export const AuthProvider = ({ children }) => {
     setSession(false);
   };
 
+  const updateUser = async (newUsername) => {
+  await AsyncStorage.setItem('username', newUsername);
+  setUser(prev => ({ ...prev, username: newUsername }));
+};
+
   return (
-    <AuthContext.Provider value={{ session, user, login, signup, signout }}>
+    <AuthContext.Provider value={{ session, user, login, signup, signout , updateUser }}>
       {children}
     </AuthContext.Provider>
   );
